@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>I Love You Hand Tracking</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#111018;color:#fff;font:16px Arial,sans-serif}main{max-width:1100px;margin:auto;padding:20px}p{line-height:1.5;color:#d9d3df}.stage{position:relative;background:#08080b;border:1px solid #48404e;border-radius:20px;overflow:hidden;min-height:220px;aspect-ratio:16/9}canvas{display:block;width:100%;height:100%;object-fit:contain}video{position:fixed;left:-2px;top:-2px;width:1px;height:1px;opacity:0;pointer-events:none}#placeholder{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:24px;pointer-events:none;color:#bdb1c5}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}button{font:inherit;font-weight:bold;border:0;border-radius:12px;padding:12px 18px;cursor:pointer;background:#ffb8d5;color:#291222}button.secondary{background:#302936;color:#fff}button:disabled{opacity:.5;cursor:default}button:focus-visible{outline:3px solid #fff;outline-offset:3px}#status{min-height:24px;overflow-wrap:anywhere}#status.error{color:#ffb0b0}#word{display:grid;place-items:center;font-size:clamp(56px,10vw,96px);font-weight:700;line-height:1.2;color:#ffb8d5;min-height:132px;text-align:center;overflow-wrap:anywhere;padding:12px 0}#word span{grid-area:1/1;max-width:100%}#status[hidden]{display:none}@media(prefers-reduced-motion:reduce){#word{scroll-behavior:auto}}label{display:flex;align-items:center;gap:8px}
+
+:root{--accent:#d7ff87;--pink:#ff9ac8;--panel:#17191c;--line:#ffffff16}body{background:radial-gradient(ellipse at 5% 10%,#26342888,transparent 48%),radial-gradient(ellipse at 100% 90%,#49293d66,transparent 50%),#0b0d10;font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}main{max-width:1240px;padding:24px}.studio-bar{display:flex;align-items:center;justify-content:space-between;margin:0 0 18px}.mark{font-size:32px;color:var(--accent);text-shadow:0 0 30px #d7ff8755}.studio-bar button{font-size:13px;padding:10px 16px;border:1px solid var(--line)}.studio-bar .tag{color:#a6b5a4;font-size:11px;letter-spacing:.2em;margin-left:12px}.stage{border:1px solid #d7ff873b;border-radius:28px;box-shadow:0 0 0 6px #ffffff03,0 24px 80px #0008;background:radial-gradient(ellipse at center,#202c29,#0a0d10 65%)}#placeholder{font-size:16px;color:#bfcbbd;gap:12px}button{border-radius:100px;transition:background .2s,transform .2s,box-shadow .2s;background:var(--accent);color:#14210c;font-size:14px;padding:13px 22px;box-shadow:0 4px 20px #0002}button:hover:enabled{transform:translateY(-2px);box-shadow:0 6px 24px #d7ff8720}button.secondary{background:#ffffff08;border:1px solid var(--line);color:#e6e8e3}.controls{align-items:center;padding:16px 0;border-bottom:1px solid var(--line);gap:10px;margin:8px 0}.controls label{margin-left:auto;color:#bfc5bd;font-size:13px;padding:10px}input[type=checkbox]{accent-color:var(--accent);width:17px;height:17px}#word{color:#ffd0e4;text-shadow:0 0 70px #ff83bf44;letter-spacing:-.055em;min-height:160px;font-weight:800}#word:empty::after{content:'✦';font-size:40px;color:#d7ff8730}#editor{padding:24px;margin:18px 0 32px;border:1px solid #ffffff18;background:linear-gradient(140deg,#1c241ff2,#1a1720f2);border-radius:24px;box-shadow:0 20px 70px #0004}#editor[hidden]{display:none}.editor-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}.editor-top h2{margin:0;font-size:24px;letter-spacing:-.04em}.editor-top p{font-size:13px;color:#9ea89e;margin:7px 0 0}.hand-editors{display:grid;grid-template-columns:1fr 1fr;gap:24px}.hand-column h3{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:#c9d8bb;margin:4px 0 14px}.finger-card{padding:16px;margin-bottom:10px;border-radius:16px;border:1px solid var(--line);background:#080b0e55;display:grid;grid-template-columns:1fr 1fr;gap:10px}.finger-title{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;color:#c6cfc4;font-size:13px}.finger-title button{padding:5px 10px;font-size:12px;box-shadow:none}.finger-card label{display:flex;align-items:flex-start;flex-direction:column;gap:6px;min-width:0;color:#889485;font-size:11px}.finger-card input[type=text],.finger-card select{width:100%;min-width:0;background:#151a18;color:#f3f5ed;border:1px solid #ffffff20;border-radius:9px;padding:10px;font:inherit;font-size:14px;outline:none}.finger-card input:focus,.finger-card select:focus{border-color:var(--accent);box-shadow:0 0 0 3px #d7ff8715}.finger-card .voice-label{flex-direction:row;align-items:center;font-size:12px;color:#b9c3b7}.finger-card .color-label{flex-direction:row;align-items:center;justify-content:flex-end}.finger-card input[type=color]{width:30px;height:25px;border:0;background:transparent;padding:0;cursor:pointer}#saved{font-size:12px;color:#bdd2ab;min-height:18px;margin:16px 0 0}.editor-actions{display:flex;gap:8px;align-items:center}.editor-actions button{font-size:12px;padding:9px 13px}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}@media(max-width:740px){main{padding:16px}.hand-editors{grid-template-columns:1fr}.controls label{margin-left:0}.controls button{font-size:12px;padding:12px 15px}.studio-bar .tag{font-size:9px}#editor{padding:16px}.editor-top{align-items:flex-start;flex-direction:column}.stage{border-radius:20px}#word{min-height:130px}}@media(prefers-reduced-motion:reduce){button{transition:none}button:hover:enabled{transform:none}}
+</style>
+</head>
+<body><main>
+<div class="studio-bar"><div><span class="mark" aria-hidden="true">✦</span><span class="tag">GESTURE / PLAYGROUND</span></div><button id="edit-toggle" class="secondary" type="button" aria-controls="editor" aria-expanded="false">✎ Настроить жесты</button></div>
+<div class="stage"><video id="input_video" autoplay playsinline muted aria-hidden="true"></video><canvas id="output_canvas" width="1280" height="720" aria-label="Зеркальное видео с распознаванием рук"></canvas><div id="placeholder">✨<br>Нажмите «Включить камеру»</div></div>
+<div class="controls"><button id="start" type="button">Включить камеру</button><button id="stop" class="secondary" type="button" disabled>Остановить</button><button id="demo" class="secondary" type="button">Проверить эффекты 💋</button><label><input id="sound" type="checkbox" checked> Звук и речь</label></div>
+<p id="status" role="status" aria-live="polite" hidden></p>
+<div id="word" aria-live="polite"></div>
+<section id="editor" hidden aria-labelledby="editor-title">
+<div class="editor-top"><div><h2 id="editor-title">Твои жесты. Твои правила.</h2><p>Слова и эффекты меняются сразу — попробуйте любой палец.</p></div><div class="editor-actions"><button id="reset-settings" class="secondary" type="button">Вернуть исходные</button><button id="close-editor" class="secondary" type="button" aria-label="Закрыть редактор">✕</button></div></div>
+<div class="hand-editors" id="hand-editors"></div><p id="saved" role="status" aria-live="polite"></p></section>
+<noscript>Для работы страницы включите JavaScript.</noscript>
+</main><script>
+'use strict';
+const videoElement = document.getElementById('input_video');
+const canvasElement = document.getElementById('output_canvas');
+const canvasCtx = canvasElement.getContext('2d');
+const startButton = document.getElementById('start');
+const stopButton = document.getElementById('stop');
+const soundToggle = document.getElementById('sound');
+const statusElement = document.getElementById('status');
+const placeholder = document.getElementById('placeholder');
+const MP_BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/';
+let audioCtx, hands = null, stream = null, running = false, starting = false;
+let session = 0, particles = [], kissEffect = null, latestLandmarks = [], lastRender = 0;
+const touches = new Map();
+function status(text, error = false) { statusElement.textContent = error ? text : ''; statusElement.hidden = !error; statusElement.classList.toggle('error', error); }
+function initAudio() {
+  if (!soundToggle.checked) return;
+  try {
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if (Audio) { audioCtx ||= new Audio(); audioCtx.resume().catch(() => {}); }
+    if ('speechSynthesis' in window) { speechSynthesis.getVoices(); }
+  } catch (error) { console.warn('Audio unavailable', error); }
+}
+function showWord(text) {
+  const container = document.getElementById('word');
+  const previous = container.lastElementChild;
+  // Keep a single outgoing layer during rapid gesture changes.
+  for (const child of [...container.children]) if (child !== previous) child.remove();
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (previous) {
+    previous.setAttribute('aria-hidden', 'true');
+    if (reduced || !previous.animate) previous.remove();
+    else {
+      const opacity = getComputedStyle(previous).opacity;
+      previous.getAnimations().forEach(animation => animation.cancel());
+      const exit = previous.animate([{opacity}, {opacity:0, transform:'translateY(-12px) scale(1.03)'}], {duration:400,easing:'ease-in-out',fill:'forwards'});
+      exit.onfinish = () => previous.remove();
+    }
+  }
+  const next = document.createElement('span');
+  next.textContent = text;
+  container.append(next);
+  if (!reduced && next.animate) next.animate([
+    {opacity:0,transform:'translateY(16px) scale(.92)'},
+    {opacity:1,transform:'translateY(0) scale(1)'}
+  ], {duration:650,easing:'cubic-bezier(.2,.65,.3,1)'});
+}
+function speakWord(word) {
+  showWord(word);
+  if (!soundToggle.checked || !('speechSynthesis' in window)) return;
+  try {
+    // Bounded queue keeps rapid gestures audible without an ever-growing backlog.
+    if (speechSynthesis.pending) speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = /[а-яё]/i.test(word) ? 'ru-RU' : 'en-US'; utterance.rate = 1.1; utterance.pitch = 1.25;
+    utterance.onerror = event => console.warn('Speech:', event.error);
+    speechSynthesis.speak(utterance);
+  } catch (error) { console.warn('Speech unavailable', error); }
+}
+  // Генерация реалистичного звука «Чмок» (Web Audio API без внешних файлов)
+  function playKissSound() {
+    if (!audioCtx || !soundToggle.checked || audioCtx.state !== 'running') return;
+    const now = audioCtx.currentTime;
+
+    // 1. Высокий чмокающий щелчок (осциллятор с резким падением частоты)
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1400, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.08);
+
+    gain.gain.setValueAtTime(0.01, now);
+    gain.gain.linearRampToValueAtTime(0.8, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.1);
+
+    // 2. Короткий воздушный призвук губ (фильтрованный шум)
+    const bufferSize = Math.ceil(audioCtx.sampleRate * 0.07);
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(2200, now);
+
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.4, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    noise.start(now);
+  }
+
+  // Спавн частиц (сердечки или цветочки)
+  function spawnParticles(type, x, y) {
+    const count = type === 'heart' ? 18 : 22;
+    if (particles.length > 220) particles.splice(0, particles.length - 220);
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        type: type,
+        x: type === 'flower' ? Math.random() * canvasElement.width : x + (Math.random() - 0.5) * 150,
+        y: type === 'flower' ? canvasElement.height * (0.65 + Math.random() * 0.25) : y + (Math.random() - 0.5) * 100,
+        vx: (Math.random() - 0.5) * 3,
+        vy: type === 'heart' ? -Math.random() * 3 - 1 : -Math.random() * 1.5,
+        size: Math.random() * 18 + 14,
+        alpha: 1,
+        emoji: type === 'heart' ? '🩷' : '🌸'
+      });
+    }
+  }
+
+  // Запуск огромного пиксельного поцелуя по центру экрана
+  function triggerKissVisual() {
+    kissEffect = {
+      alpha: 1.0,
+      scale: 0.8
+    };
+  }
+
+  // Отрисовка пиксельного/текстурного отпечатка губ
+  function drawPixelKiss(ctx, w, h, alpha, scale) {
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = alpha;
+
+    const lipW = Math.min(w, h) * 0.55;
+    const lipH = lipW * 0.65;
+
+    const step = 6;
+    for (let y = -lipH / 2; y < lipH / 2; y += step) {
+      for (let x = -lipW / 2; x < lipW / 2; x += step) {
+        const nx = x / (lipW / 2);
+        const ny = y / (lipH / 2);
+
+        const upperTop = -0.85 * Math.cos(nx * Math.PI * 0.5) + 0.25 * Math.exp(-Math.pow(nx * 4.5, 2));
+        const upperBottom = -0.08 * Math.cos(nx * Math.PI);
+        const lowerTop = 0.08 * Math.cos(nx * Math.PI);
+        const lowerBottom = 0.95 * Math.pow(Math.cos(nx * Math.PI * 0.5), 1.3);
+
+        const inUpper = ny > upperTop && ny < upperBottom && Math.abs(nx) < 0.95;
+        const inLower = ny > lowerTop && ny < lowerBottom && Math.abs(nx) < 0.88;
+
+        if (inUpper || inLower) {
+          const grain = Math.sin(x * 0.3) * Math.cos(y * 0.3) + (Math.random() - 0.5);
+          if (grain > -0.35) {
+            ctx.fillStyle = Math.random() > 0.3 ? 'rgba(215, 20, 35, 0.85)' : 'rgba(245, 70, 85, 0.75)';
+            ctx.fillRect(x, y, step - 1, step - 1);
+          }
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  // Настройки слов для пальцев
+  const LEFT_SCREEN_HAND = {
+    8: { text: '✨', color: '#ffe79b', action: 'stars' },
+    12: { text: '🌈', color: '#b5a1ff', action: 'rainbow' },
+    20: { text: 'much', color: '#7bed9f', action: 'flower' }, // Мизинец (слева на экране)
+    16: { text: 'so',   color: '#ffffff', action: 'heart' }   // Безымянный
+  };
+
+  const RIGHT_SCREEN_HAND = {
+    8:  { text: 'I',    color: '#ffffff', action: 'none' },   // Указательный (справа на экране)
+    12: { text: 'love', color: '#ff4757', action: 'none' },   // Средний
+    16: { text: 'you',  color: '#70a1ff', action: 'none' },   // Безымянный
+    20: { text: '💋',   color: '#ff4757', action: 'kiss' }    // Мизинец (поцелуй)
+  };
+
+const CONNECTIONS = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[0,17],[17,18],[18,19],[19,20]];
+function trigger(config, tip) {
+  if (config.speak && config.text.trim()) speakWord(config.text);
+  else showWord(config.text);
+  if (config.action === 'kiss') {playKissSound();triggerKissVisual();}
+  else if (config.action === 'stars' || config.action === 'rainbow') {spawnMagic(config.action,tip.x,tip.y);playMagicSound(config.action);}
+  else if (config.action === 'heart' || config.action === 'flower') spawnParticles(config.action,tip.x,tip.y);
+}
+// Bounded, time-based effects anchored to the touching fingertip.
+let magicEffects = [];
+function spawnMagic(type, x, y) {
+  magicEffects.push({type,x,y,born:performance.now(),seed:Math.random()*Math.PI*2});
+  if (magicEffects.length > 6) magicEffects.shift();
+}
+function playMagicSound(type) {
+  if (!audioCtx || !soundToggle.checked || audioCtx.state !== 'running') return;
+  const now = audioCtx.currentTime;
+  const notes = type === 'stars' ? [659.25,987.77,1318.51] : [523.25,659.25,783.99,1046.5];
+  notes.forEach((frequency,i)=>{
+    const osc=audioCtx.createOscillator(), gain=audioCtx.createGain(), at=now+i*.075;
+    osc.type='sine';osc.frequency.value=frequency;
+    gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.09,at+.025);
+    gain.gain.exponentialRampToValueAtTime(.001,at+.5);
+    osc.connect(gain);gain.connect(audioCtx.destination);osc.start(at);osc.stop(at+.52);
+    osc.onended=()=>{osc.disconnect();gain.disconnect();};
+  });
+}
+function drawMagic(now) {
+  const ctx=canvasCtx, unit=Math.min(canvasElement.width,canvasElement.height);
+  magicEffects=magicEffects.filter(effect=>now-effect.born<2800);
+  for (const effect of magicEffects) {
+    const age=Math.max(0,(now-effect.born)/1000), fade=Math.min(1,age/.18)*Math.min(1,(2.8-age)/.8);
+    ctx.save();ctx.globalAlpha=fade;ctx.translate(effect.x,effect.y);
+    if (effect.type==='stars') {
+      for(let i=0;i<28;i++) {
+        const angle=effect.seed+i*2.39996+age*(i%2 ? 1 : -1)*1.5;
+        const radius=unit*(.025+age*.1)*Math.sqrt((i+1)/28);
+        const x=Math.cos(angle)*radius, y=Math.sin(angle)*radius-age*unit*.035;
+        const size=unit*(.005+.009*(.5+.5*Math.sin(i+age*5)));
+        ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.shadowBlur=14;
+        ctx.fillStyle=i%3 ? '#ffe6a0' : '#dfb8ff';ctx.shadowColor=ctx.fillStyle;
+        ctx.beginPath();ctx.moveTo(0,-size);ctx.quadraticCurveTo(size*.2,-size*.2,size,0);
+        ctx.quadraticCurveTo(size*.2,size*.2,0,size);ctx.quadraticCurveTo(-size*.2,size*.2,-size,0);
+        ctx.quadraticCurveTo(-size*.2,-size*.2,0,-size);ctx.fill();ctx.restore();
+      }
+    } else {
+      const colors=['#ff7ca8','#ffb879','#ffe894','#a0edc8','#89d9ff','#c6a4ff'];
+      const reveal=1-Math.pow(1-Math.min(1,age/.8),3), radius=unit*(.12+.035*age);
+      ctx.translate(0,-unit*.02*age);ctx.lineCap='round';ctx.lineWidth=unit*.009;ctx.shadowBlur=18;
+      for(let i=0;i<colors.length;i++) {
+        ctx.strokeStyle=colors[i];ctx.shadowColor=colors[i];ctx.beginPath();
+        ctx.arc(0,0,radius+i*unit*.014,Math.PI,Math.PI+Math.PI*reveal);ctx.stroke();
+      }
+      ctx.shadowBlur=0;ctx.font=`${unit*.045}px Arial`;ctx.textAlign='center';
+      ctx.fillText('✨',-radius-unit*.035,unit*.015);ctx.fillText('✨',radius+unit*.035,unit*.015);
+    }
+    ctx.restore();
+  }
+}
+function points(landmarks) {
+  return landmarks.map(p => ({x:(1-p.x)*canvasElement.width, y:p.y*canvasElement.height}));
+}
+function processGestures(landmarkSets, now) {
+  const seen = new Set();
+  for (const landmarks of landmarkSets) {
+    const pts = points(landmarks);
+    const side = pts[0].x < canvasElement.width / 2 ? 'left' : 'right';
+    const map = side === 'left' ? LEFT_SCREEN_HAND : RIGHT_SCREEN_HAND;
+    // Scale thresholds with palm size rather than camera resolution.
+    const palm = Math.max(25, Math.hypot(pts[0].x-pts[9].x, pts[0].y-pts[9].y));
+    for (const [idx, config] of Object.entries(map)) {
+      const tip = pts[Number(idx)], key = `${side}_${idx}`;
+      seen.add(key);
+      const ratio = Math.hypot(pts[4].x-tip.x, pts[4].y-tip.y) / palm;
+      const state = touches.get(key) || {down:false, since:null, last:-Infinity};
+      if (ratio < 0.30) {
+        state.since ??= now;
+        if (!state.down && now-state.since >= 90 && now-state.last > 650) {
+          state.down = true; state.last = now; trigger(config, tip);
+        }
+      } else if (ratio > 0.43) { state.down = false; state.since = null; }
+      touches.set(key, state);
+    }
+  }
+  for (const key of touches.keys()) if (!seen.has(key)) touches.delete(key);
+}
+function drawHands() {
+  const ctx = canvasCtx;
+  for (const landmarks of latestLandmarks) {
+    const pts = points(landmarks), side = pts[0].x < canvasElement.width/2 ? 'left' : 'right';
+    const map = side === 'left' ? LEFT_SCREEN_HAND : RIGHT_SCREEN_HAND;
+    ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 1.5;
+    for (const [i,j] of CONNECTIONS) {ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}
+    ctx.fillStyle = '#fff';
+    for (const pt of pts) {ctx.beginPath();ctx.arc(pt.x,pt.y,2.5,0,Math.PI*2);ctx.fill();}
+    for (const [idx,config] of Object.entries(map)) {
+      const tip = pts[Number(idx)], active = touches.get(`${side}_${idx}`)?.down;
+      ctx.font = `bold ${active ? 34 : 22}px Arial, sans-serif`;
+      ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.6)';
+      const x=Math.max(35,Math.min(canvasElement.width-35,tip.x)), y=Math.max(36,tip.y-22);
+      const label=Array.from(config.text).length>14 ? Array.from(config.text).slice(0,13).join('')+'…' : config.text;
+      ctx.strokeText(label,x,y);ctx.fillStyle=config.color;ctx.fillText(label,x,y);
+    }
+  }
+}
+function render(now) {
+  const dt = Math.min((now-(lastRender || now))/16.667, 3); lastRender=now;
+  const w=canvasElement.width,h=canvasElement.height,ctx=canvasCtx;
+  ctx.clearRect(0,0,w,h);
+  if (running && videoElement.readyState >= 2) {
+    ctx.save();ctx.translate(w,0);ctx.scale(-1,1);ctx.drawImage(videoElement,0,0,w,h);ctx.restore();
+    drawHands();
+  }
+  for (let i=particles.length-1;i>=0;i--) {
+    const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.alpha-=.015*dt;
+    if (p.alpha<=0) {particles.splice(i,1);continue;}
+    ctx.save();ctx.globalAlpha=p.alpha;ctx.font=`${p.size}px Arial`;ctx.textAlign='center';ctx.fillText(p.emoji,p.x,p.y);ctx.restore();
+  }
+  drawMagic(now);
+  if(kissEffect){drawPixelKiss(ctx,w,h,kissEffect.alpha,kissEffect.scale);kissEffect.scale+=.015*dt;kissEffect.alpha-=.025*dt;if(kissEffect.alpha<=0)kissEffect=null;}
+  requestAnimationFrame(render);
+}
+function withTimeout(promise, milliseconds, message) {
+  let timer;
+  return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),milliseconds);})]).finally(()=>clearTimeout(timer));
+}
+let scriptPromise = null;
+function loadMediaPipe() {
+  if (window.Hands) return Promise.resolve();
+  if (scriptPromise) return scriptPromise;
+  scriptPromise = new Promise((resolve,reject)=>{
+    const script = document.createElement('script');
+    script.src=MP_BASE+'hands.js';script.crossOrigin='anonymous';
+    const timer=setTimeout(()=>{script.remove();scriptPromise=null;reject(new Error('CDN не отвечает. Проверьте интернет и повторите запуск.'));},30000);
+    script.onload=()=>{clearTimeout(timer);if(window.Hands)resolve();else{scriptPromise=null;reject(new Error('MediaPipe Hands не загрузился.'));}};
+    script.onerror=()=>{clearTimeout(timer);script.remove();scriptPromise=null;reject(new Error('Не удалось загрузить MediaPipe с CDN. Проверьте интернет или блокировщик.'));};
+    document.head.append(script);
+  });
+  return scriptPromise;
+}
+let modelWork = Promise.resolve();
+function releaseResources() {
+  running=false;session++;
+  if(stream)stream.getTracks().forEach(track=>track.stop());
+  stream=null;videoElement.pause();videoElement.srcObject=null;
+  const old=hands;hands=null;
+  // A graph must not be closed while initialize/send is still using it.
+  if(old)modelWork.catch(()=>{}).then(()=>old.close()).catch(error=>console.warn('MediaPipe cleanup',error));
+  latestLandmarks=[];touches.clear();particles=[];kissEffect=null;magicEffects=[];
+  if('speechSynthesis' in window)speechSynthesis.cancel();
+  if(audioCtx?.state==='running')audioCtx.suspend().catch(()=>{});
+  placeholder.hidden=false;placeholder.style.display='grid';stopButton.disabled=true;
+}
+function errorText(error) {
+  const messages={NotAllowedError:'Доступ к камере запрещён. Разрешите его в настройках сайта и повторите запуск.',NotFoundError:'Камера не найдена. Подключите веб-камеру.',NotReadableError:'Камера недоступна или занята другим приложением.',OverconstrainedError:'Камера не поддерживает выбранные параметры.',SecurityError:'Камера заблокирована настройками браузера.'};
+  return messages[error?.name] || error?.message || 'Неизвестная ошибка камеры или MediaPipe.';
+}
+async function infer(token, model) {
+  if(!running || token!==session)return;
+  try {
+    if(videoElement.readyState>=2 && !document.hidden){modelWork=model.send({image:videoElement});await modelWork;}
+    if(running && token===session)requestAnimationFrame(()=>infer(token,model));
+  } catch(error) {
+    if(token!==session)return;
+    console.error(error);releaseResources();startButton.disabled=false;status(errorText(error),true);
+  }
+}
+async function start() {
+  if(starting || running)return;
+  starting=true;startButton.disabled=true;
+  initAudio();
+  const token=++session;
+  try {
+    if(!window.isSecureContext || !navigator.mediaDevices?.getUserMedia)throw new Error('Для камеры откройте страницу через localhost или HTTPS в современном браузере.');
+    status('Запрашиваем доступ к камере…');
+    // If permission is granted after a timeout, release that late stream too.
+    let expired=false;
+    const request=navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false}).then(value=>{
+      if(expired || token!==session){value.getTracks().forEach(t=>t.stop());throw new Error('Запуск камеры отменён.');}return value;
+    });
+    try { stream=await withTimeout(request,60000,'Нет ответа на запрос камеры. Проверьте разрешение и повторите запуск.'); } catch(error){expired=true;throw error;}
+    if(token!==session)return;
+    videoElement.srcObject=stream;
+    await withTimeout(videoElement.play(),20000,'Камера не начала воспроизведение. Повторите запуск.');
+    status('Загрузка MediaPipe Hands и модели…');
+    await loadMediaPipe();
+    if(token!==session)return;
+    const model=new Hands({locateFile:file=>MP_BASE+file});hands=model;
+    model.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:.7,minTrackingConfidence:.7});
+    model.onResults(results=>{
+      if(!running || token!==session)return;
+      latestLandmarks=results.multiHandLandmarks || [];
+      processGestures(latestLandmarks,performance.now());
+    });
+    modelWork=model.initialize();
+    await withTimeout(modelWork,90000,'Модель не загрузилась. Проверьте интернет и повторите запуск.');
+    if(token!==session)return;
+    canvasElement.width=videoElement.videoWidth || 1280;canvasElement.height=videoElement.videoHeight || 720;
+    document.querySelector('.stage').style.aspectRatio=`${canvasElement.width}/${canvasElement.height}`;
+    for(const track of stream.getVideoTracks())track.addEventListener('ended',()=>{
+      if(token===session){releaseResources();startButton.disabled=false;status('Камера отключена. Подключите её и повторите запуск.',true);}
+    });
+    running=true;stopButton.disabled=false;placeholder.style.display='none';
+    status('Камера включена. Покажите ладони и соединяйте пальцы.');
+    infer(token,model);
+  } catch(error) {
+    if(token===session){console.error(error);releaseResources();status(errorText(error),true);}
+  } finally {starting=false;startButton.disabled=running;}
+}
+startButton.addEventListener('click',start);
+stopButton.addEventListener('click',()=>{releaseResources();startButton.disabled=false;status('Камера остановлена. Можно запустить снова.');});
+soundToggle.addEventListener('change',()=>{if(soundToggle.checked)initAudio();else if('speechSynthesis' in window)speechSynthesis.cancel();});
+document.getElementById('demo').addEventListener('click',()=>{
+  initAudio();
+  const phrase=[RIGHT_SCREEN_HAND[8],RIGHT_SCREEN_HAND[12],RIGHT_SCREEN_HAND[16],LEFT_SCREEN_HAND[16],LEFT_SCREEN_HAND[20]].filter(c=>c.speak).map(c=>c.text).filter(Boolean).join(' ');
+  if(phrase) speakWord(phrase);else showWord('✦');
+  const configs=[...Object.values(LEFT_SCREEN_HAND),...Object.values(RIGHT_SCREEN_HAND)];
+  for(const action of new Set(configs.map(c=>c.action))) {
+    const x=canvasElement.width*(action==='stars'?.3:.7),y=canvasElement.height*.6;
+    if(action==='heart'||action==='flower')spawnParticles(action,x,y);
+    if(action==='stars'||action==='rainbow'){spawnMagic(action,x,y);playMagicSound(action);}
+    if(action==='kiss'){playKissSound();triggerKissVisual();}
+  }
+});
+const EFFECTS={none:'Без эффекта',heart:'🩷 Сердечки',flower:'🌸 Цветочки',kiss:'💋 Поцелуй',stars:'✨ Звёздный вихрь',rainbow:'🌈 Радуга'};
+const SETTINGS_KEY='love-hand-studio-v1';
+const handMaps={left:LEFT_SCREEN_HAND,right:RIGHT_SCREEN_HAND};
+for(const map of Object.values(handMaps))for(const config of Object.values(map))config.speak=['none','heart','flower'].includes(config.action);
+const defaults=JSON.parse(JSON.stringify(handMaps));
+function applySettings(data) {
+  if(!data || typeof data!=='object')return;
+  for(const side of ['left','right']) for(const tip of [8,12,16,20]) {
+    const value=data[side]?.[tip];if(!value || typeof value!=='object')continue;
+    const target=handMaps[side][tip];
+    if(typeof value.text==='string')target.text=Array.from(value.text).slice(0,48).join('');
+    if(Object.hasOwn(EFFECTS,value.action))target.action=value.action;
+    if(typeof value.color==='string' && /^#[0-9a-f]{6}$/i.test(value.color))target.color=value.color;
+    if(typeof value.speak==='boolean')target.speak=value.speak;
+  }
+}
+function saveSettings() {
+  touches.clear();
+  try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(handMaps));document.getElementById('saved').textContent='✓ Сохранено в этом браузере';}
+  catch(error){document.getElementById('saved').textContent='Изменения работают. Браузер не разрешает сохранить их после закрытия.';}
+}
+function buildEditor() {
+  const root=document.getElementById('hand-editors');root.replaceChildren();
+  const fingers={8:'Указательный',12:'Средний',16:'Безымянный',20:'Мизинец'};
+  for(const side of ['left','right']) {
+    const column=document.createElement('div');column.className='hand-column';
+    const heading=document.createElement('h3');heading.textContent=side==='left'?'↖ Слева на экране':'↗ Справа на экране';column.append(heading);
+    for(const tip of [8,12,16,20]) {
+      const config=handMaps[side][tip],card=document.createElement('div');card.className='finger-card';
+      const title=document.createElement('div');title.className='finger-title';
+      const name=document.createElement('span');name.textContent=fingers[tip];
+      const preview=document.createElement('button');preview.type='button';preview.className='secondary';preview.textContent='▶ Проверить';preview.setAttribute('aria-label',`Проверить: ${side==='left'?'слева':'справа'}, ${fingers[tip]}`);
+      preview.addEventListener('click',()=>{initAudio();trigger(config,{x:canvasElement.width*(side==='left'?.3:.7),y:canvasElement.height*.55});});title.append(name,preview);card.append(title);
+      function field(caption,control,className='') {const label=document.createElement('label');label.className=className;const text=document.createElement('span');text.textContent=caption;label.append(text,control);card.append(label);return control;}
+      const input=field('Слово или эмодзи',document.createElement('input'));input.type='text';input.maxLength=96;input.value=config.text;input.setAttribute('aria-label',`Слово: ${side==='left'?'слева':'справа'}, ${fingers[tip]}`);
+      input.addEventListener('input',()=>{config.text=Array.from(input.value).slice(0,48).join('');saveSettings();});
+      const select=field('Эффект',document.createElement('select'));select.setAttribute('aria-label',`Эффект: ${side==='left'?'слева':'справа'}, ${fingers[tip]}`);
+      for(const [value,text] of Object.entries(EFFECTS)){const option=document.createElement('option');option.value=value;option.textContent=text;select.append(option);}select.value=config.action;
+      select.addEventListener('change',()=>{config.action=select.value;saveSettings();});
+      const voice=field('Произносить',document.createElement('input'),'voice-label');voice.type='checkbox';voice.checked=config.speak;voice.addEventListener('change',()=>{config.speak=voice.checked;saveSettings();});
+      const color=field('Цвет подписи',document.createElement('input'),'color-label');color.type='color';color.value=config.color;color.addEventListener('input',()=>{config.color=color.value;saveSettings();});
+      column.append(card);
+    }
+    root.append(column);
+  }
+}
+function toggleEditor(open) {
+  document.getElementById('editor').hidden=!open;
+  document.getElementById('edit-toggle').setAttribute('aria-expanded',String(open));
+  if(open)document.getElementById('editor').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+}
+document.getElementById('edit-toggle').addEventListener('click',()=>toggleEditor(document.getElementById('editor').hidden));
+document.getElementById('close-editor').addEventListener('click',()=>{toggleEditor(false);document.getElementById('edit-toggle').focus();});
+document.getElementById('reset-settings').addEventListener('click',()=>{applySettings(defaults);saveSettings();buildEditor();});
+try{const saved=localStorage.getItem(SETTINGS_KEY);if(saved)applySettings(JSON.parse(saved));}catch(error){console.warn('Настройки не прочитаны',error);}
+buildEditor();
+window.addEventListener('pagehide',releaseResources);
+requestAnimationFrame(render);
+</script></body></html>
